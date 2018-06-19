@@ -1,0 +1,15 @@
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void createThreads();
+void beAffectedByNeighors(int x, int y);
+void *runIteration(void *);
+void writeToFile();
+void checkEnd();
+void endProgram();
+
+int threadCount = 4;
+int isReady = 0;
+long thread;
+pthread_t *threadHandles;

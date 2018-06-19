@@ -1,0 +1,109 @@
+#include "infectionFunc.h"
+#include "neighborCheckFunc.c"
+#include "stateCheckFunc.c"
+
+/*
+ * If cell state is "Infected, "Recovered", or "Dead", don't check.
+ * Else, check when "Susceptible".
+
+ */
+void beAffectedByNeighbors (int x, int y) {
+  cell c = cells[x][y];
+
+  lastDead = currentDead;
+  lastRecovered = currentRecovered;
+
+  /*
+   * If recovered or dead, don't bother.
+   */
+  if (c.currentState == 2 || c.currentState == 3)
+    return;
+
+  /*
+   * See neighborCheckFunc.c
+   */
+  if (isLong == 1)
+    cells[x][y] = longCheck(c);
+  else
+    cells[x][y] = shortCheck(c);
+}
+
+/*
+ * If no cells are left alive, end the program.
+ * Else for each cell, be affected by neighbors.
+ *
+ * If cells are unchanged for 100 iterations, end the program.
+ * Else update the states and iterate.
+ */
+void runIteration() {
+   if (hasEnded == 0)
+    checkEnd();
+
+  if (hasEnded == 1)
+    return;
+
+  int x, y;
+  for (x = 0; x < cellCount; x++)
+    for (y = 0; y < cellCount; y++)
+      beAffectedByNeighbors (x, y);
+
+  writeToFile();
+
+  if (hasWindow == 0)
+    runIteration(); 
+}
+  
+void writeToFile() {
+  char name[20];
+  sprintf(name, "textfiles/%d.txt", currentIteration);
+  
+  /*
+   * w = write
+   * a = append
+   */
+  FILE *f = fopen(name, "w");
+
+  /*
+   * Write each value to file.
+   */
+  int x, y;
+  for (x = 0; x < cellCount; x++){
+    for (y = 0; y < cellCount; y++){
+      fprintf(f, "%d", cells[x][y].currentState);
+
+  int alive = totalCells - currentDead;
+  int inf = alive - currentRecovered;
+  fprintf(f, "\n\n%d Susceptible \n%d Infected \n%d Recovered \n%d Dead", alive, inf, currentRecovered, currentDead);
+  fclose(f);
+
+  updateCellStates();
+  currentIteration++;
+}
+
+void checkEnd() {
+  if (currentDead >= totalCells) {
+    endProgram();
+    return;
+  }
+
+  if (lastRecovered == currentRecovered && lastDead == currentDead) {
+    numOfUnchangedIterations++;
+    if (numOfUnchangedIterations == 500)
+      endProgram();
+  } else if (numOfUnchangedIterations > 0) {
+    numOfUnchangedIterations == 0;
+  }
+}
+
+/*
+ * Print last iteration, and cells that recovered.
+ */
+void endProgram() {
+  hasEnded = 1;
+
+  /* Prints iteration with final 500 from unchangedIterations*/
+  //printf("%c%d\t%c%d\t%c%d\n", 'I', currentIteration, 'D', currentDead, 'R', currentRecovered);
+
+  /* Prints iteration when we see the program end */
+  printf("%c%d\t%c%d\t%c%d\n", 'I', currentIteration - 500, 'D', currentDead, 'R', currentRecovered);
+}

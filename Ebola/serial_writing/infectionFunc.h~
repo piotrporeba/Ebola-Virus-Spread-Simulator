@@ -1,0 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void beAffectedByNeighors(int x, int y);
+void runIteration();
+void checkEnd();
+void endProgram();
